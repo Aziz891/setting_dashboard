@@ -44,7 +44,6 @@ class setting_serializer(serializers.ModelSerializer):
     class Meta:
         model = Settings_Details
         fields = '__all__'
-        
     creation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
     created_by = serializers.SerializerMethodField()
 
