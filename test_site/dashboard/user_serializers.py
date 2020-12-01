@@ -2,7 +2,7 @@
 from rest_framework import serializers
 from rest_framework_jwt.settings import api_settings
 from django.contrib.auth.models import User
-from .models import Settings_Details
+from .models import Settings_Details, Settings_Parameters
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -37,13 +37,21 @@ class UserSerializerWithToken(serializers.ModelSerializer):
         model = User
         fields = ('token', 'username', 'password')
 
+        
+class parameter_serializer(serializers.ModelSerializer):
+
+
+    class Meta:
+        model = Settings_Parameters
+        fields = '__all__'
 
 class setting_serializer(serializers.ModelSerializer):
+    param  = parameter_serializer(many=True)
 
 
     class Meta:
         model = Settings_Details
-        fields = '__all__'
+        fields = [ 'id', 'substation', 'creation_date', 'created_by', 'param']
         
     creation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
     created_by = serializers.SerializerMethodField()
@@ -57,5 +65,11 @@ class setting_serializer(serializers.ModelSerializer):
             temp = None
         
         return temp
+    
+    def create(self, validated_data):
+        param_data = validated_data.pop('param')
+        setting = Settings_Details.objects.create(**validated_data)
+        for param in param_data:
+            Settings_Parameters.objects.create(setting_id=setting, **param)
+        return setting
 
-        

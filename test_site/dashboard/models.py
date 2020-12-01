@@ -12,8 +12,15 @@ class Settings_Details(models.Model):
     scheme_type = models.CharField(max_length=100, blank=True, null=True)
     serial_nuber = models.CharField(max_length=100, blank=True, null=True)
     function_type = models.CharField(max_length=100, blank=True, null=True)
-    created_by = models.ForeignKey(User, models.CASCADE, blank=False, null=False, related_name='setting')
+    created_by = models.ForeignKey(User, models.CASCADE, blank=False, null=True,  related_name='setting')
     creation_date = models.DateTimeField( auto_now_add=True, auto_now=False ,blank=True, null=True)
+
+class Settings_Parameters(models.Model):
+    id= models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, blank=True, null=True)
+    value = models.CharField(max_length=100, blank=True, null=True)
+    setting_id = models.ForeignKey(Settings_Details, models.CASCADE, blank=True, null=True, related_name='param')
+    
 
 
     
