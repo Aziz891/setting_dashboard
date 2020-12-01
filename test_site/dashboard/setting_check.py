@@ -13,7 +13,6 @@ from rest_framework import permissions
 
 
 
-
 class Setting_File_Handler(FileUploadHandler):
 
     def receive_data_chunk(self,raw_data, start):

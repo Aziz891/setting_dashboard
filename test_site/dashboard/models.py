@@ -23,7 +23,13 @@ class Settings_Parameters(models.Model):
     
 
 
-    
+class Settings_Parameters(models.Model):
+    id= models.AutoField(primary_key=True)
+    Name = models.CharField(max_length=100, blank=True, null=True)
+    Description = models.CharField(max_length=100, blank=True, null=True)
+    Value = models.CharField(max_length=100, blank=True, null=True)
+    Setting_Key = models.ForeignKey(Settings_Details, models.CASCADE, blank=False, null=False, related_name='detail')
+
 
 
 
