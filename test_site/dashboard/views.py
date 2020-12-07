@@ -9,8 +9,9 @@ from rest_framework import viewsets
 from .models import Settings_Details
 from rest_framework import permissions
 from django.shortcuts import get_object_or_404
-from django.db.models.functions import TruncMonth
+from django.db.models.functions import TruncMonth, TruncDay
 from django.db.models import Count, Q, Sum
+from datetime import datetime
 
 
 class Setting_Details_viewset(viewsets.ModelViewSet):
@@ -35,9 +36,10 @@ class settings_chart(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request, format=None):
-        data = Settings_Details.objects.annotate(t=TruncMonth(
-            'creation_date')) .values('t').annotate(
-            y=Count('id')).values('t', 'y')
+        data = Settings_Details.objects.annotate(x=TruncMonth(
+            'creation_date')) .values('x').annotate(
+            y=Count('id')).values('x', 'y')
+        data = [ {'t': i["x"].strftime("%Y-%m-%d"), 'y': i['y'] } for i in data ]
 
         return Response(data)
 class settings_chart2(APIView):

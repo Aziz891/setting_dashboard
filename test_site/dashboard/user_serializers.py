@@ -51,7 +51,7 @@ class setting_serializer(serializers.ModelSerializer):
 
     class Meta:
         model = Settings_Details
-        fields = [ 'id', 'substation', 'creation_date', 'created_by', 'param']
+        fields = [ 'id', 'substation', 'manufacturer', 'bay_number', 'creation_date', 'created_by', 'param']
         
     creation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
     created_by = serializers.SerializerMethodField()
@@ -68,7 +68,9 @@ class setting_serializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         param_data = validated_data.pop('param')
-        setting = Settings_Details.objects.create(**validated_data)
+        setting = Settings_Details.objects.create(**validated_data, created_by = User.objects.get(pk=1))
+        # setting.created_by = User.objects.get(pk=1)
+        
         for param in param_data:
             Settings_Parameters.objects.create(setting_id=setting, **param)
         return setting
