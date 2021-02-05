@@ -6,12 +6,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .user_serializers import UserSerializer, UserSerializerWithToken, setting_serializer
 from rest_framework import viewsets
-from .models import Settings_Details
+from .models import Settings_Details, Settings_Parameters
 from rest_framework import permissions
 from django.shortcuts import get_object_or_404
 from django.db.models.functions import TruncMonth, TruncDay
 from django.db.models import Count, Q, Sum
 from datetime import datetime
+from django.http import HttpResponse
+import csv
+import pandas as pd
+from io import BytesIO
 
 
 class Setting_Details_viewset(viewsets.ModelViewSet):
@@ -52,7 +56,26 @@ class settings_chart2(APIView):
         temp = [[i['manufacturer'] for i in data ], [i['y'] for i in data ] ] 
 
         return Response(temp)
+class settings_export(APIView):
 
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, format=None):
+        # data = Settings_Details.objects.get_object_or_404
+        # response = HttpResponse(content_type='text/csv')
+        # response['Content-Disposition'] = 'attachment; filename="export.csv"'
+        # writer = csv.writer(response, dialect='excel')
+        settings = Settings_Parameters.objects.filter(setting_id=request.query_params["id"]).values_list('name', 'value')
+        pd_setting = pd.DataFrame(settings)
+        with BytesIO() as b:
+        # Use the StringIO object as the filehandle.
+            writer = pd.ExcelWriter(b, engine='xlsxwriter')
+            pd_setting.to_excel(writer, sheet_name='Sheet1')
+            writer.save()
+            return HttpResponse(b.getvalue(), content_type='application/vnd.ms-excel')
+       
+        
+        # return response
 
 @api_view(['GET'])
 def current_user(request):
