@@ -16,6 +16,8 @@ from django.http import HttpResponse
 import csv
 import pandas as pd
 from io import BytesIO
+from requests import get
+from json import loads
 
 
 class Setting_Details_viewset(viewsets.ModelViewSet):
@@ -56,6 +58,25 @@ class settings_chart2(APIView):
         temp = [[i['manufacturer'] for i in data ], [i['y'] for i in data ] ] 
 
         return Response(temp)
+class rpi_api_scan(APIView):
+
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, format=None):
+        data =  get("http://172.27.200.6:5000/5").text
+
+        return Response(loads(data))
+
+class rpi_api_get_settings(APIView):
+
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, format=None):
+        ip = request.GET.get('ip')
+        data =  get(f"http://172.27.200.6:5000/1?ip={ip}").text
+        
+
+        return Response(data) # todo: add exception
 class settings_export(APIView):
 
     permission_classes = (permissions.AllowAny,)
