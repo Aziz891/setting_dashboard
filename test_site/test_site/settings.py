@@ -26,6 +26,7 @@ SECRET_KEY = 'g03$2b)f$+9&pf0po7q@epvrk!!vaqu_yy+1n=&nv5)tfxrz%w'
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+# CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "https://example.com",
     "https://sub.example.com",
@@ -73,7 +74,8 @@ REST_FRAMEWORK = {
 
 
 JWT_AUTH = {
-    'JWT_RESPONSE_PAYLOAD_HANDLER': 'test_site.utils.my_jwt_response_handler'
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'test_site.utils.my_jwt_response_handler',
+    "JWT_VERIFY_EXPIRATION": False
 }
 
 
@@ -107,8 +109,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'rb',
-        'USER': 'root',
-        'PASSWORD': '496440123',
+        'USER': 'aziz',
+        'PASSWORD': '123123',
         'HOST': '127.0.0.1' ,
         'PORT' : '3306'
 
@@ -119,18 +121,18 @@ DATABASES = {
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    # },
 ]
 
 

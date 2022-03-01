@@ -9,7 +9,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser, FileUploadParser
 from .xml_parse import setting_check
-
+from rest_framework import permissions
 
 
 
@@ -26,6 +26,7 @@ class Setting_File_Handler(FileUploadHandler):
 
 class Setting_Check(APIView):
      parser_classes = (MultiPartParser, FormParser, JSONParser)
+     permission_classes = (permissions.AllowAny,)
   
    
      def post(self, request, *args, **kwargs):

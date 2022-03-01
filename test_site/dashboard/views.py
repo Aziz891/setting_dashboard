@@ -4,19 +4,41 @@ from rest_framework import permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .user_serializers import UserSerializer, UserSerializerWithToken, setting_serializer
+from .user_serializers import UserSerializer, UserSerializerWithToken,  setting_serializer2, setting_serializer
 from rest_framework import viewsets
-from .models import Settings_Details
+from .models import Settings_Details, Settings_Parameters
 from rest_framework import permissions
 from django.shortcuts import get_object_or_404
-from django.db.models.functions import TruncMonth
+from django.db.models.functions import TruncMonth, TruncDay
 from django.db.models import Count, Q, Sum
+from datetime import datetime
+from django.http import HttpResponse
+import csv
+import pandas as pd
+from io import BytesIO
+from requests import get
+from json import loads
 
 
 class Setting_Details_viewset(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
     serializer_class = setting_serializer
+    queryset = Settings_Details.objects.all()
+
+    # def list(self, request):
+    #     serializer = UserSerializer(queryset, many=True)
+    #     return Response(serializer.data)
+
+    # def retrieve(self, request, pk=None):
+    #     queryset = Settings_Details.objects.all()
+    #     user = get_object_or_404(queryset, pk=pk)
+    #     serializer = UserSerializer(user)
+    #     return Response(serializer.data)
+class Setting_Details_viewset2(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    serializer_class = setting_serializer2
     queryset = Settings_Details.objects.all()
 
     # def list(self, request):
@@ -35,9 +57,28 @@ class settings_chart(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request, format=None):
-        data = Settings_Details.objects.annotate(t=TruncMonth(
-            'creation_date')) .values('t').annotate(
-            y=Count('id')).values('t', 'y')
+        data = Settings_Details.objects.annotate(x=TruncMonth(
+            'creation_date')) .values('x').annotate(
+            y=Count('id')).values('x', 'y')
+        data = [ {'t': i["x"].strftime("%Y-%m-%d"), 'y': i['y'] } for i in data ]
+
+        return Response(data)
+class area_chart(APIView):
+
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, format=None):
+        data ={
+            "COA" : 0,
+            "WOA" : 0,
+            "EOA" : 0,
+            "SOA" : 0,
+        }
+        temp = Settings_Details.objects.values('area').annotate(
+        cnt=Count('id'))
+        for i in temp:
+            if i['area'] in data.keys():
+                data[i['area']] = i['cnt']  
 
         return Response(data)
 class settings_chart2(APIView):
@@ -50,7 +91,45 @@ class settings_chart2(APIView):
         temp = [[i['manufacturer'] for i in data ], [i['y'] for i in data ] ] 
 
         return Response(temp)
+class rpi_api_scan(APIView):
 
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, format=None):
+        data =  get("http://172.27.200.6:5000/5").text
+
+        return Response(loads(data))
+
+class rpi_api_get_settings(APIView):
+
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, format=None):
+        ip = request.GET.get('ip')
+        data =  get(f"http://172.27.200.6:5000/1?ip={ip}").text
+        
+
+        return Response(data) # todo: add exception
+class settings_export(APIView):
+
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, format=None):
+        # data = Settings_Details.objects.get_object_or_404
+        # response = HttpResponse(content_type='text/csv')
+        # response['Content-Disposition'] = 'attachment; filename="export.csv"'
+        # writer = csv.writer(response, dialect='excel')
+        settings = Settings_Parameters.objects.filter(setting_id=request.query_params["id"]).values_list('name', 'value')
+        pd_setting = pd.DataFrame(settings)
+        with BytesIO() as b:
+        # Use the StringIO object as the filehandle.
+            writer = pd.ExcelWriter(b, engine='xlsxwriter')
+            pd_setting.to_excel(writer, sheet_name='Sheet1')
+            writer.save()
+            return HttpResponse(b.getvalue(), content_type='application/vnd.ms-excel')
+       
+        
+        # return response
 
 @api_view(['GET'])
 def current_user(request):
