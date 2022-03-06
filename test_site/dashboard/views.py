@@ -4,9 +4,9 @@ from rest_framework import permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .user_serializers import UserSerializer, UserSerializerWithToken,  setting_serializer2, setting_serializer
+from .user_serializers import UserSerializer, UserSerializerWithToken,  setting_serializer2, setting_serializer, substation_serializer, setting_serializer3
 from rest_framework import viewsets
-from .models import Settings_Details, Settings_Parameters
+from .models import Settings_Details, Settings_Parameters, Substations, Settings_Proper
 from rest_framework import permissions
 from django.shortcuts import get_object_or_404
 from django.db.models.functions import TruncMonth, TruncDay
@@ -19,6 +19,12 @@ from io import BytesIO
 from requests import get
 from json import loads
 
+
+class Substations_viewset(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    serializer_class = substation_serializer
+    queryset = Substations.objects.all()
 
 class Setting_Details_viewset(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
@@ -40,6 +46,17 @@ class Setting_Details_viewset2(viewsets.ModelViewSet):
     authentication_classes = []
     serializer_class = setting_serializer2
     queryset = Settings_Details.objects.all()
+class Setting_Details_viewset3(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    serializer_class = setting_serializer3
+    queryset = Settings_Details.objects.all()
+
+class Setting_Proper_viewset2(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    serializer_class = setting_serializer
+    queryset = Settings_Proper.objects.all()
 
     # def list(self, request):
     #     serializer = UserSerializer(queryset, many=True)
@@ -61,6 +78,18 @@ class settings_chart(APIView):
             'creation_date')) .values('x').annotate(
             y=Count('id')).values('x', 'y')
         data = [ {'t': i["x"].strftime("%Y-%m-%d"), 'y': i['y'] } for i in data ]
+
+        return Response(data)
+class settings_relay(APIView):
+
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, format=None):
+        id = request.GET.get('id')
+        if id is None:
+            return Response([])
+        data = Settings_Proper.objects.filter(relay=id).values_list('creation_date', 'id')
+        data = [[i[1], i[0].strftime("%Y-%m-%d %H:%M")] for i in data ]
 
         return Response(data)
 class area_chart(APIView):
@@ -96,7 +125,7 @@ class rpi_api_scan(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request, format=None):
-        data =  get("http://172.27.200.6:5000/5").text
+        data =  get("http://192.168.100.242:5000/5").text
 
         return Response(loads(data))
 
@@ -106,7 +135,7 @@ class rpi_api_get_settings(APIView):
 
     def get(self, request, format=None):
         ip = request.GET.get('ip')
-        data =  get(f"http://172.27.200.6:5000/1?ip={ip}").text
+        data =  get(f"http://192.168.100.242:5000/1?ip={ip}").text
         
 
         return Response(data) # todo: add exception
@@ -137,7 +166,9 @@ def current_user(request):
     Determine the current user by their token, and return their data
     """
 
+    permission_classes = (permissions.AllowAny,)
     serializer = UserSerializer(request.user)
+
     return Response(serializer.data)
 
 
