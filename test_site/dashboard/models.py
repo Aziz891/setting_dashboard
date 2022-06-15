@@ -23,6 +23,13 @@ class Settings_Details(models.Model):
     ip_address = models.CharField(max_length=100, blank=True, null=True)
     substation = models.ForeignKey(Substations, models.CASCADE, db_column="substation", blank=False, null=True,  related_name='relay')
     
+class Fault(models.Model):
+    id= models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, blank=True, null=True)
+    trigger_date = models.DateTimeField( auto_now_add=True, auto_now=False ,blank=True, null=True)
+    cfg = models.FileField(max_length=1000, blank=True, null=True, upload_to='faults')
+    dat = models.FileField(max_length=1000, blank=True, null=True, upload_to='faults')
+    relay = models.ForeignKey(Settings_Details, models.CASCADE, db_column="relay", blank=False, null=True,  related_name='fault')
 
 class Settings_Proper(models.Model):
     id= models.AutoField(primary_key=True)

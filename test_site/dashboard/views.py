@@ -1,3 +1,4 @@
+from fileinput import filename
 from django.http import HttpResponseRedirect
 from django.contrib.auth.models import User
 from rest_framework import permissions, status
@@ -15,9 +16,11 @@ from datetime import datetime
 from django.http import HttpResponse
 import csv
 import pandas as pd
-from io import BytesIO
+from io import BytesIO, StringIO
 from requests import get
 from json import loads
+from comtrade import Comtrade
+
 
 
 class Substations_viewset(viewsets.ModelViewSet):
@@ -139,6 +142,65 @@ class rpi_api_get_settings(APIView):
         
 
         return Response(data) # todo: add exception
+
+class rpi_api_get_faults(APIView):
+
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, format=None):
+        ip = request.GET.get('ip')
+        data =  get(f"http://192.168.100.242:5000/6?ip={ip}").text
+        
+
+        return Response(data) # todo: add exception
+class rpi_api_get_fault(APIView):
+
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, format=None):
+        ip = request.GET.get('ip')
+        name = request.GET.get('name')
+        cfg =  get(f"http://192.168.100.242:5000/7?ip={ip}&name={name}.CFG").text
+        dat =  get(f"http://192.168.100.242:5000/7?ip={ip}&name={name}.dat").content
+        cfg = StringIO(cfg)
+        dat = BytesIO(dat)
+        rec= Comtrade()
+        rec.read(cfg, dat)
+
+        
+
+        return Response(list(zip(rec.analog[0], rec.time))) # todo: add exception
+class rpi_api_get_file(APIView):
+
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, format=None):
+        ip = request.GET.get('ip')
+        name = request.GET.get('name')
+        cfg =  get(f"http://192.168.100.242:5000/7?ip={ip}&name={name}.CFG").content
+        dat =  get(f"http://192.168.100.242:5000/7?ip={ip}&name={name}.dat").content
+        cfg = BytesIO(cfg)
+        dat = BytesIO(dat)
+        
+        response = HttpResponse(cfg.getvalue(), content_type='application/octet-stream')
+        response['Content-Disposition'] = 'attachment; filename=DownloadedText.cfg'
+        return response
+class rpi_api_get_file2(APIView):
+
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, format=None):
+        ip = request.GET.get('ip')
+        name = request.GET.get('name')
+        cfg =  get(f"http://192.168.100.242:5000/7?ip={ip}&name={name}.CFG").content
+        dat =  get(f"http://192.168.100.242:5000/7?ip={ip}&name={name}.dat").content
+        cfg = BytesIO(cfg)
+        dat = BytesIO(dat)
+        
+        response = HttpResponse(dat.getvalue(), content_type='application/octet-stream')
+        response['Content-Disposition'] = 'attachment; filename=DownloadedText.DAT'
+        return response
+
 class settings_export(APIView):
 
     permission_classes = (permissions.AllowAny,)
